@@ -14,15 +14,8 @@ export default function ApplicationsPage() {
     let mounted = true;
     fetch('/api/applications')
       .then(r => r.json())
-      .then(data => { 
-        if (mounted) {
-          // Ensure data is an array, not an error object
-          setApplications(Array.isArray(data) ? data : []);
-        }
-      })
-      .catch(() => {
-        if (mounted) setApplications([]);
-      });
+      .then(data => { if (mounted) setApplications(data || []); })
+      .catch(() => {});
     return () => { mounted = false };
   }, []);
 

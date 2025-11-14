@@ -285,7 +285,7 @@ export default function CareerOfficeJobs() {
   return (
     <DashboardLayout userType="career-office">
       <Toast message={formSuccess || formError} type={formError ? 'error' : 'success'} />
-      <div className={`${styles.jobsContainer} ${styles.compact}`}>
+      <div className={styles.jobsContainer}>
           <div className={styles.jobsHeader}>
             <h1 className={styles.jobsTitle}>Job Management</h1>
             {/* Only show header 'Post New Job' when no job is selected and form is not open */}
@@ -448,7 +448,7 @@ export default function CareerOfficeJobs() {
 
           {/* Mobile overlay */}
           <div 
-            className={`${styles.jobDetailOverlay} ${(selectedJob || isAddingJob) ? 'active' : ''}`}
+            className={`${styles.jobDetailOverlay} ${(selectedJob || isAddingJob) ? styles.active : ''}`}
             onClick={handleCloseJobDetail}
           />
 
