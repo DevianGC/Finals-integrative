@@ -1,14 +1,14 @@
 'use client';
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { firebaseAuth } from '../../lib/firebaseClient';
+import { firebaseAuth } from '../../../lib/firebaseClient';
 import Link from 'next/link';
 import styles from './login.module.css';
-import FormInput from '../../components/UI/FormInput/FormInput';
-import Button from '../../components/UI/Button/Button';
-import { getAuthConfig, getNavConfig, getValidationConfig } from '../../utils/config';
+import FormInput from '../../../components/UI/FormInput/FormInput';
+import Button from '../../../components/UI/Button/Button';
+import { getAuthConfig, getNavConfig, getValidationConfig } from '../../../utils/config';
 
-export default function Login() {
+export default function EmployerLogin() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -67,22 +67,27 @@ export default function Login() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken })
       });
-      // Determine redirect based on role from session/profile
-      let roleKey = 'student';
+      
+      // Check if user is actually an employer
       try {
         const meRes = await fetch('/api/me', { cache: 'no-store' });
         if (meRes.ok) {
           const me = await meRes.json();
-          const role = me?.user?.role || me?.profile?.role; // support either shape
-          if (role) {
-            // Map API role (e.g., 'career_office') to nav config key ('careerOffice')
-            roleKey = role === 'career_office' ? 'careerOffice' : role;
+          const role = me?.user?.role || me?.profile?.role;
+          if (role === 'employer') {
+            window.location.href = '/dashboard/employer';
+          } else {
+            setErrors({ general: 'Access denied. This login is for employers only.' });
+            return;
           }
+        } else {
+          setErrors({ general: 'Unable to verify account. Please try again.' });
+          return;
         }
-      } catch {}
-      const redirectMap = navConfig.dashboardRedirects || {};
-      const target = redirectMap[roleKey] || redirectMap.student || '/dashboard/student';
-      window.location.href = target;
+      } catch {
+        setErrors({ general: 'Unable to verify account. Please try again.' });
+        return;
+      }
     } catch (error) {
       setErrors({ general: error.message || 'Login failed' });
     }
@@ -93,15 +98,15 @@ export default function Login() {
       <div className={styles.loginContainer}>
         <div className={styles.loginCard}>
           <div className={styles.loginHeader}>
-            <h1 className={styles.loginTitle}>Welcome Back</h1>
+            <h1 className={styles.loginTitle}>Employer Login</h1>
             <p className={styles.loginSubtitle}>
-              Sign in to access your GCCCS CareerLink account
+              Sign in to your employer account to manage job postings and applications
             </p>
           </div>
 
           <form className={styles.loginForm} onSubmit={handleSubmit}>
             <FormInput
-              label="Email Address"
+              label="Company Email Address"
               type="email"
               id="email"
               name="email"
@@ -109,6 +114,7 @@ export default function Login() {
               onChange={handleChange}
               required
               error={errors.email}
+              placeholder="company@example.com"
             />
 
             <FormInput
@@ -123,33 +129,36 @@ export default function Login() {
             />
 
             <div className={styles.forgotPassword}>
-              <Link href="/forgot-password" className={styles.forgotLink}>
+              <Link href="/employer/forgot-password" className={styles.forgotLink}>
                 Forgot password?
               </Link>
             </div>
 
             <Button type="submit" variant="primary" fullWidth>
-              Login
+              Login to Employer Portal
             </Button>
             {errors.general && <div className={styles.errorText}>{errors.general}</div>}
           </form>
 
           <div className={styles.loginFooter}>
             <p>
-              Don't have an account?{' '}
-              <Link href="/register" className={styles.registerLink}>
-                Register here
+              Don't have an employer account?{' '}
+              <Link href="/employer/register" className={styles.registerLink}>
+                Register your company
               </Link>
             </p>
-            <p className={styles.careerOfficeLink}>
-              <Link href="/career-office/login">
-                Career Office Login
-              </Link>
-              {' | '}
-              <Link href="/employer/login" className={styles.employerLink}>
-                Employer Login
-              </Link>
-            </p>
+            <div className={styles.otherLogins}>
+              <p className={styles.otherLoginLink}>
+                <Link href="/login">
+                  Student/Alumni Login
+                </Link>
+              </p>
+              <p className={styles.otherLoginLink}>
+                <Link href="/career-office/login">
+                  Career Office Login
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>
